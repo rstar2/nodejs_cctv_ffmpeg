@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live streaming</title>
+
+    <script src="./js/jsmpeg.min.js"></script>
+
+</head>
+<body>
+    <canvas id="videoCanvas" width="640" height="480"> </canvas>
+
+    
+	<script type="text/javascript">
+	    const canvas = document.getElementById('videoCanvas');
+	    const ctx = canvas.getContext('2d');
+	    ctx.fillStyle = '#fff';
+	    ctx.fillText('Loading...', canvas.width/2-30, canvas.height/3);
+
+	    const streamUrl = 'ws://127.0.0.1:9999';
+	    const player = new JSMpeg.Player(streamUrl, {
+            canvas, 
+            disableGl: true,
+            audio: true
+        });
+	</script>
+</body>
+</html>

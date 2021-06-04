@@ -1,0 +1,24 @@
+{
+  "name": "livestream-ffmpeg-ws-jsmpeg",
+  "version": "1.0.0",
+  "description": "",
+  "main": ".eslintrc.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "server-express": "node server-ui.js",
+    "server-streaming": "node server-streaming.js",
+    "ffmpeg": "ffmpeg -f v4l2 -video_size 640x480 -framerate 25 -i /dev/video0 -f alsa -ar 44100 -ac 2 -i hw:0 -f mpegts -codec:v mpeg1video -s 640x480 -b:v 1000k -bf 0 -codec:a mp2 -b:a 128k -muxdelay 0.001 http://127.0.0.1:8888",
+    "start": "node server.js"
+  },
+  "keywords": [],
+  "author": "Rumen Neshev <rstardev@abv.bg>",
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.17.1",
+    "ws": "^7.3.1"
+  },
+  "devDependencies": {
+    "eslint-plugin-prettier": "^3.1.4",
+    "prettier": "^2.1.1"
+  }
+}
