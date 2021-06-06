@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Live streaming</title>
 
-    <script src="./js/jsmpeg.min.js"></script>
+    <script src="js/jsmpeg.min.js"></script>
 
 </head>
 <body>
@@ -18,11 +18,21 @@
 	    ctx.fillStyle = '#fff';
 	    ctx.fillText('Loading...', canvas.width/2-30, canvas.height/3);
 
-	    const streamUrl = 'ws://127.0.0.1:9999';
-	    const player = new JSMpeg.Player(streamUrl, {
-            canvas, 
-            disableGl: true,
-            audio: true
+        const hostname = window.location.hostname;
+
+        // Make a first fetch request to get the port
+        fetch('wsport').then(res => res.text()).then(port => {
+            // in case empty is returned
+            port = port || 9999;
+
+            console.log(`WebSocket port ${port}`);
+
+            const streamUrl = `ws://${hostname}:${port}`;
+	        const player = new JSMpeg.Player(streamUrl, {
+                canvas, 
+                disableGl: true,
+                audio: true
+            });
         });
 	</script>
 </body>
