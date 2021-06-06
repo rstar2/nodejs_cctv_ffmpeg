@@ -67,5 +67,10 @@ Where:
 
 ## Run
 
-1. Start the UI and the re-streaming servers: ```node server-ui.js``` and ```node server-streaming.js```
-2. Start the FFmpeg video capturing (and broadcasting to the server-streaming.js server)
+### With running 'ffmpeg capturing' internally from the streaming server only when a client is connected 
+
+> Start the UI-server and the re-streaming server: ```npm run start```
+
+### With running 'ffmpeg capturing' constantly - set env variable INTERNAL_FFMPEG_PROCESS=false
+
+> Start the UI-server, the re-streaming server and the ffmpeg-capturing: ```npm run start-no-internal``` or run each server individually

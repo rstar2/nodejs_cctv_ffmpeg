@@ -5,9 +5,11 @@
   "main": ".eslintrc.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server-express": "PORT_APP=3000 PORT_WEBSOCKET=3001 node server-ui.js",
-    "server-streaming": "PORT_WEBSOCKET=3001 PORT_STREAM=3002 LOCAL_FFMPEG_PROCESS=true node server-streaming.js",
-    "start": "npm run server-streaming & npm run server-express & ./server-ffmpeg.sh &"
+    "server-ui": "PORT_APP=3000 PORT_WEBSOCKET=3001 node server-ui.js",
+    "server-streaming": "PORT_WEBSOCKET=3001 PORT_STREAM=3002 node server-streaming.js",
+    "server-streaming-no-internal": "PORT_WEBSOCKET=3001 PORT_STREAM=3002 INTERNAL_FFMPEG_PROCESS=false node server-streaming.js",
+    "start": "npm run server-streaming & npm run server-ui &",
+    "start-no-internal": "npm run server-streaming-no-internal & npm run server-ui & ./ffmpeg-webcapture.sh &"
   },
   "keywords": [],
   "author": "Rumen Neshev <rstardev@abv.bg>",

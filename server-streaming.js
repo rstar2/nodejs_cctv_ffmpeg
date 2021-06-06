@@ -8,17 +8,19 @@ const PORT_STREAM = process.env.PORT_STREAM || 8888;
 // here a client will connect and receive the broadcasted stream
 const PORT_WEBSOCKET = process.env.PORT_WEBSOCKET || 9999;
 
+// whether or not to spawn internally ffmpeg-capturing when needed
+const INTERNAL_FFMPEG_PROCESS = process.env.INTERNAL_FFMPEG_PROCESS !== 'false';
+
 const STREAM_MAGIC_BYTES = 'jsmp'; // Must be 4 bytes
 
 const width = 320,
   height = 240;
 
 /**
+ * Created only if INTERNAL_FFMPEG_PROCESS is true
  * @type {child_process.ChildProcess}
  */
 let webCapture;
-const LOCAL_FFMPEG_PROCESS = process.env.LOCAL_FFMPEG_PROCESS !== 'false';
-console.log('LOCAL_FFMPEG_PROCESS=', LOCAL_FFMPEG_PROCESS);
 
 // 1. Websocket Server - that listens for client connections
 const socketServer = new ws.Server({ port: PORT_WEBSOCKET });
@@ -79,7 +81,7 @@ streamServer.listen(PORT_STREAM);
  * Start web-capturing process
  */
 function startWebCapture() {
-  if (!LOCAL_FFMPEG_PROCESS) return;
+  if (!INTERNAL_FFMPEG_PROCESS) return;
 
   if (webCapture) {
     console.error('Already started web-capturing process');
@@ -104,7 +106,7 @@ function startWebCapture() {
  * Stop web-capturing process
  */
 function stopWebCapture() {
-  if (!LOCAL_FFMPEG_PROCESS) return;
+  if (!INTERNAL_FFMPEG_PROCESS) return;
 
   if (!webCapture) {
     console.error('Already stopped web-capturing process');
@@ -130,5 +132,6 @@ function stopWebCapture() {
   }
 }
 
+console.log(`INTERNAL_FFMPEG_PROCESS=${INTERNAL_FFMPEG_PROCESS}`);
 console.log('Listening for MPEG Stream on http://0.0.0.0:' + PORT_STREAM + '/<width>/<height>');
 console.log('Awaiting client WebSocket connections on ws://0.0.0.0:' + PORT_WEBSOCKET + '/');
