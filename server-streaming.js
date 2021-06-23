@@ -1,6 +1,8 @@
-const child_process = require('child_process');
+const child_process = require("child_process");
 
-const ws = require('ws');
+const ws = require("ws");
+
+const cron = require("node-cron");
 
 // here will come the HTTP live stream
 const PORT_STREAM = process.env.PORT_STREAM || 8888;
@@ -9,12 +11,20 @@ const PORT_STREAM = process.env.PORT_STREAM || 8888;
 const PORT_WEBSOCKET = process.env.PORT_WEBSOCKET || 9999;
 
 // whether or not to spawn internally ffmpeg-capturing when needed
-const INTERNAL_FFMPEG_PROCESS = process.env.INTERNAL_FFMPEG_PROCESS !== 'false';
+const INTERNAL_FFMPEG_PROCESS = process.env.INTERNAL_FFMPEG_PROCESS !== "false";
 
-const STREAM_MAGIC_BYTES = 'jsmp'; // Must be 4 bytes
+const STREAM_MAGIC_BYTES = "jsmp"; // Must be 4 bytes
 
-const width = 320,
-  height = 240;
+const WIDTH = 320,
+  HEIGHT = 240;
+
+const HISTORY_CAPTURE_TRY_AGAIN_TIMEOUT = 1000 * 60 * 1; // 1 min
+const HISTORY_CAPTURE_TRY_AGAIN_MAX_ATTEMPTS = 5;
+const HISTORY_CAPTURE_CRON = "* * * * *"; // every minute
+
+let history_try_again_attempts = 0;
+// schedule a history image capture
+cron.schedule(HISTORY_CAPTURE_CRON, historyCaptureTry);
 
 /**
  * Created only if INTERNAL_FFMPEG_PROCESS is true
@@ -24,11 +34,11 @@ let webCapture;
 
 // 1. Websocket Server - that listens for client connections
 const socketServer = new ws.Server({ port: PORT_WEBSOCKET });
-socketServer.on('connection', (socket) => {
-  console.log('New WebSocket Connection (' + socketServer.clients.size + ' total)');
+socketServer.on("connection", (socket) => {
+  console.log("New WebSocket Connection (" + socketServer.clients.size + " total)");
 
-  socket.on('close', (/* code, message */) => {
-    console.log('Disconnected WebSocket (' + socketServer.clients.size + ' total)');
+  socket.on("close", (/* code, message */) => {
+    console.log("Disconnected WebSocket (" + socketServer.clients.size + " total)");
 
     // if this is last client then stop web-capturing
     if (socketServer.clients.size === 0) {
@@ -42,8 +52,8 @@ socketServer.on('connection', (socket) => {
   // struct { char magic[4]; unsigned short width, height;}
   const streamHeader = Buffer.alloc(8); // 8 octets
   streamHeader.write(STREAM_MAGIC_BYTES); // 4 octets
-  streamHeader.writeUInt16BE(width, 4); // 2 octets
-  streamHeader.writeUInt16BE(height, 6); // 2 octets
+  streamHeader.writeUInt16BE(WIDTH, 4); // 2 octets
+  streamHeader.writeUInt16BE(HEIGHT, 6); // 2 octets
   socket.send(streamHeader, { binary: true });
 
   // if this is first client then start web-capturing
@@ -58,20 +68,20 @@ socketServer.broadcast = (data, opts) => {
     if (socket.readyState === ws.OPEN) {
       socket.send(data, opts);
     } else {
-      console.log('Error: Client (' + socket + ') not connected.');
+      console.log("Error: Client (" + socket + ") not connected.");
     }
   });
 };
 
 // 2. HTTP Server to accept incoming MPEG Stream (from FFmpeg for instance)
-const streamServer = require('http').createServer((request, response) => {
-  response.connection.setTimeout(0);
+const streamServer = require("http").createServer((request, response) => {
+  response.setTimeout(0);
 
-  console.log('Stream Connected - and feeding');
+  console.log("Stream Connected - and feeding");
 
   // on each new data received on the HTTP request as it's a stream :)
   // then broadcast it to all connected clients
-  request.on('data', (data) => {
+  request.on("data", (data) => {
     socketServer.broadcast(data, { binary: true });
   });
 });
@@ -84,11 +94,11 @@ function startWebCapture() {
   if (!INTERNAL_FFMPEG_PROCESS) return;
 
   if (webCapture) {
-    console.error('Already started web-capturing process');
+    console.error("Already started web-capturing process");
   } else {
-    console.log('Starting web-capturing process');
-    webCapture = child_process.spawn('./ffmpeg-webcapture.sh', { detached: true });
-    console.log('Started web-capturing process');
+    console.log("Starting web-capturing process");
+    webCapture = child_process.spawn("./ffmpeg-webcapture.sh", { detached: true });
+    console.log("Started web-capturing process");
 
     // webCapture = child_process.exec(
     //   'ffmpeg -f v4l2 -video_size 640x480 -framerate 25 -i /dev/video0 -f alsa -ar 44100 -ac 2 -i hw:0 -f mpegts -codec:v mpeg1video -s 640x480 -b:v 1000k -bf 0 -codec:a mp2 -b:a 128k -muxdelay 0.001 http://127.0.0.1:8888',
@@ -109,9 +119,9 @@ function stopWebCapture() {
   if (!INTERNAL_FFMPEG_PROCESS) return;
 
   if (!webCapture) {
-    console.error('Already stopped web-capturing process');
+    console.error("Already stopped web-capturing process");
   } else {
-    console.log('Stopping web-capturing process');
+    console.log("Stopping web-capturing process");
 
     try {
       // NOTE: this is not working as I guess the there's underlying 'ffmpeg' process started
@@ -123,15 +133,38 @@ function stopWebCapture() {
       // other option is to use 'fkill' module, but no need for now
       process.kill(-webCapture.pid);
 
-      console.log('Stopped web-capturing process');
+      console.log("Stopped web-capturing process");
     } catch (err) {
-      console.error('Failed to stop web-capturing process');
+      console.error("Failed to stop web-capturing process");
     }
 
     webCapture = undefined;
   }
 }
 
+function historyCaptureTry() {
+  // check is currently the webcam is streaming
+  // as we cannot use it in the same time for single capturing
+  if (webCapture) {
+    // try max HISTORY_CAPTURE_TRY_AGAIN_MAX_ATTEMPTS
+    if (history_try_again_attempts < HISTORY_CAPTURE_TRY_AGAIN_MAX_ATTEMPTS) {
+      history_try_again_attempts++;
+      setTimeout(historyCaptureTry, HISTORY_CAPTURE_TRY_AGAIN_TIMEOUT);
+    } else {
+      // reset "tries" , so to be ready for next scheduled capture
+      history_try_again_attempts = 0;
+    }
+  } else {
+    // reset "tries"
+    history_try_again_attempts = 0;
+    historyCapture();
+  }
+}
+function historyCapture() {
+  // TODO: capture and write a file
+  console.log("New image", new Date())
+}
+
 console.log(`INTERNAL_FFMPEG_PROCESS=${INTERNAL_FFMPEG_PROCESS}`);
-console.log('Listening for MPEG Stream on http://0.0.0.0:' + PORT_STREAM + '/<width>/<height>');
-console.log('Awaiting client WebSocket connections on ws://0.0.0.0:' + PORT_WEBSOCKET + '/');
+console.log("Listening for MPEG Stream on http://0.0.0.0:" + PORT_STREAM + "/<width>/<height>");
+console.log("Awaiting client WebSocket connections on ws://0.0.0.0:" + PORT_WEBSOCKET + "/");

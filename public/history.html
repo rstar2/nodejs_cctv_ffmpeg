@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Villa Cherniovo History</title>
+
+    <script src="js/jsmpeg.min.js"></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: 100vw;
+        height: 100vh;
+
+        background-color: rgba(0, 0, 0, 0.9);
+        color: chocolate;
+      }
+
+      .images {
+        display: flex;
+        flex-wrap: wrap;
+        column-gap: 10px;
+      }
+
+      .image {
+        border: 2px ridge chocolate;
+        margin-bottom: 10px;
+      }
+
+      @media screen and (min-width: 0) and (max-width: 640px) {
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Villa Cherniovo History</h2>
+    <h3 class="loading">Loading...</h3>
+    <div class="images"></div>
+
+    <script type="text/javascript">
+      const elLoading = document.querySelector('.loading');
+      const elImages = document.querySelector('.images');
+
+      // Make a first fetch request to get the port
+      fetch('api/history')
+        .then((res) => res.json())
+        .then(({ images }) => {
+          elLoading.style.display = 'none';
+
+          images.forEach((image) => {
+            const { url, meta } = image;
+            const elImage = document.createElement('img');
+            elImage.src = url;
+            elImage.className = "image";
+            elImages.append(elImage);
+          });
+        })
+        .catch((error) => {
+          console.error('Failed to load history images', error);
+
+          elLoading.style.display = 'block';
+          elLoading.innerHTML = 'Failed to load history images';
+        });
+    </script>
+  </body>
+</html>

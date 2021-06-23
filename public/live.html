@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Villa Cherniovo Live</title>
+
+    <script src="js/jsmpeg.min.js"></script>
+
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: 100vw;
+        height: 100vh;
+
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+
+        background-color: rgba(0, 0, 0, 0.9);
+        color: chocolate;
+        text-transform: uppercase;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 640px;
+      }
+
+      .icon {
+        height: 16px;
+        width: 16px;
+        display: inline-block;
+        color: chocolate;
+      }
+      .icon-history {
+        background-image: url('images/history.svg');
+      }
+
+      .action {
+        cursor: pointer;
+      }
+
+      canvas {
+        border: 2px ridge chocolate;
+      }
+
+      @media screen and (min-width: 0) and (max-width: 640px) {
+        canvas {
+          border: none;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <h2>Villa Cherniovo Live</h2>
+      <i class="icon icon-history action"></i>
+    </header>
+    <canvas id="videoCanvas" width="640" height="480"> </canvas>
+
+    <script type="text/javascript">
+      const canvas = document.getElementById('videoCanvas');
+      const ctx = canvas.getContext('2d');
+      ctx.fillStyle = 'chocolate';
+      ctx.font = '30px Arial';
+      ctx.fillText('Loading...', canvas.width / 2 - 50, canvas.height / 2);
+
+      const hostname = window.location.hostname;
+
+      // Make a first fetch request to get the port
+      fetch('api/live')
+        .then((res) => res.json())
+        .then(({wsport}) => {
+          // in case empty is returned
+          wsport = wsport || 9999;
+
+          console.log(`WebSocket port ${wsport}`);
+
+          const streamUrl = `ws://${hostname}:${wsport}`;
+          const player = new JSMpeg.Player(streamUrl, {
+              canvas,
+              disableGl: true,
+              audio: true
+          });
+        });
+
+      document
+        .querySelector('header .icon-history')
+        .addEventListener('click', () => (window.location.href = 'history.html'));
+    </script>
+  </body>
+</html>

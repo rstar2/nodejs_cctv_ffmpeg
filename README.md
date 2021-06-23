@@ -65,6 +65,16 @@ Where:
 
 ``` -f mpegts ``` will be packed into video and audio MPEG transport stream
 
+
+### Video loopback
+
+```
+sudo apt install v4l2loopback-dkms
+sudo modprobe v4l2loopback
+  or for more loopback devices
+sudo modprobe v4l2loopback devices=4
+```
+
 ## Run
 
 ### With running 'ffmpeg capturing' internally from the streaming server only when a client is connected 
@@ -74,3 +84,10 @@ Where:
 ### With running 'ffmpeg capturing' constantly - set env variable INTERNAL_FFMPEG_PROCESS=false
 
 > Start the UI-server, the re-streaming server and the ffmpeg-capturing: ```npm run start-no-internal``` or run each server individually
+
+## Run on "production"
+
+Use pm2 to run it, so inside the project folder run ```pm2 start --name livecam-ui  npm -- run server-ui``` and ```pm2 start --name livecam-streaming  npm -- run server-streaming```
+
+Also can make it run on server startup (e.g as a service)
+```pm2 startup``` and use the script it outputs. Note all processed that are needed to be started on reboot (server startup) are necessary to be "saved", so do this with ```pm2 save```, e.g. the whole "pm2 list" is run as a service. Note a name can be set with ```pm2 startup --service-name <name>```
