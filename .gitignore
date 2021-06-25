@@ -1,3 +1,7 @@
 node_modules
 
+# the history webcapture images - they are dynamic
 public/history
+
+# the logging file(s)
+default.log*

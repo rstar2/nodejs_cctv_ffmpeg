@@ -5,9 +5,9 @@
   "main": ".eslintrc.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "server-ui": "PORT_APP=3000 PORT_WEBSOCKET=3001 node server-ui.js",
-    "server-streaming": "PORT_WEBSOCKET=3001 PORT_STREAM=3002 node server-streaming.js",
-    "server-streaming-no-internal": "PORT_WEBSOCKET=3001 PORT_STREAM=3002 INTERNAL_FFMPEG_PROCESS=false node server-streaming.js",
+    "server-ui": "WEBCAM_PORT_APP=3000 WEBCAM_PORT_WEBSOCKET=3001 WEBCAM_LOG_LEVEL=debug node server-ui.js",
+    "server-streaming": "WEBCAM_PORT_WEBSOCKET=3001 WEBCAM_PORT_STREAM=3002 WEBCAM_LOG_LEVEL=debug node server-streaming.js",
+    "server-streaming-no-internal": "WEBCAM_PORT_WEBSOCKET=3001 WEBCAM_PORT_STREAM=3002 WEBCAM_INTERNAL_FFMPEG_PROCESS=false node server-streaming.js",
     "start": "npm run server-streaming & npm run server-ui &",
     "start-no-internal": "npm run server-streaming-no-internal & npm run server-ui & ./ffmpeg-webcapture.sh &"
   },
@@ -16,6 +16,7 @@
   "license": "MIT",
   "dependencies": {
     "express": "^4.17.1",
+    "log4js": "^6.3.0",
     "node-cron": "^3.0.0",
     "reboot": "^0.1.0",
     "ws": "^7.3.1"

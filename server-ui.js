@@ -2,16 +2,26 @@ const path = require("path");
 const fs = require("fs");
 
 const express = require("express");
-const { nextTick } = require("process");
+
+const logger = require("./logger");
+
 const app = express();
 
-const PORT_APP = process.env.PORT_APP || 3000;
-const PORT_WEBSOCKET = process.env.PORT_WEBSOCKET || 9999;
+const PORT_APP = process.env.WEBCAM_PORT_APP || 3000;
+const PORT_WEBSOCKET = process.env.WEBCAM_PORT_WEBSOCKET || 9999;
 
-const SECRET_PASS = process.env.SECRET_PASS || "!@rkm@!_";
+const SECRET_PASS = process.env.WEBCAM_SECRET_PASS || "!@rkm@!_";
 
 const HISTORY_FOLDER_NAME = "history";
 const HISTORY_PATH = path.resolve(__dirname, "public", HISTORY_FOLDER_NAME);
+
+app.use("*", (req, res, next) => {
+  if (logger.isDebug()) {
+    const { ip, originalUrl, method } = req;
+    logger.debug(`Request received: ${method} ${originalUrl}, from ${ip}`);
+  }
+  next();
+});
 
 // return the video websocket server port
 app.get("/api/live", (req, res) => {
@@ -37,7 +47,7 @@ app.get("/protected/*", (req, res, next) => {
 });
 app.get("/protected/reboot", (req, res) => {
   res.send();
-  nextTick(reboot);
+  process.nextTick(reboot);
 });
 
 // redirect to the static index.html
@@ -47,7 +57,7 @@ app.get("/", (req, res) => res.redirect("/live.html"));
 app.use(express.static(path.resolve(__dirname, "public")));
 
 app.listen(PORT_APP, () => {
-  console.log(`App listening on port ${PORT_APP}`);
+  logger.info(`App listening on port ${PORT_APP}`);
 });
 
 /**
@@ -66,9 +76,9 @@ app.listen(PORT_APP, () => {
  * See ```man capabilities``` and {@link https://www.npmjs.com/package/reboot}
  */
 function reboot() {
-  console.log("Rebooting");
+  logger.info("Rebooting");
   require("reboot").reboot();
-  console.log("Rebooting failed - probably no permissions");
+  logger.info("Rebooting failed - probably no permissions");
 }
 
 function listFolder(folderName, callback) {

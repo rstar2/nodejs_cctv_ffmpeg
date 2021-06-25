@@ -43,6 +43,9 @@
       .icon-history {
         background-image: url('images/history.svg');
       }
+      .icon-reboot {
+        background-image: url('images/reboot.svg');
+      }
 
       .action {
         cursor: pointer;
@@ -62,7 +65,8 @@
   <body>
     <header>
       <h2>Villa Cherniovo Live</h2>
-      <i class="icon icon-history action"></i>
+      <i class="icon icon-history action" title="History images"></i>
+      <i class="icon icon-reboot action" title="Reboot"></i>
     </header>
     <canvas id="videoCanvas" width="640" height="480"> </canvas>
 
@@ -95,6 +99,10 @@
       document
         .querySelector('header .icon-history')
         .addEventListener('click', () => (window.location.href = 'history.html'));
+        
+      document
+        .querySelector('header .icon-reboot')
+        .addEventListener('click', () => (window.open('protected/reboot', '_blank')));
     </script>
   </body>
 </html>
