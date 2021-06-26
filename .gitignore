@@ -1,7 +1,8 @@
 node_modules
 
-# the history webcapture images - they are dynamic
-public/history
+# the history webcapture images - they are dynamic (still keep the history folder)
+public/history/*
+!public/history/.gitkeep
 
 # the logging file(s)
 default.log*

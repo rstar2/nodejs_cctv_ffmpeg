@@ -12,10 +12,10 @@ log4js.configure({
       // also keep max 3 backup/old versions and compress them
       type: "file",
       filename: "default.log",
-      //   maxLogSize: 10485760,
-      maxLogSize: 1024,
+      maxLogSize: 10485760, // 1 MB
+      // maxLogSize: 1024,  // 1 KB
       backups: 3,
-      compress: true,
+      // compress: true,
     },
   },
   categories: {
