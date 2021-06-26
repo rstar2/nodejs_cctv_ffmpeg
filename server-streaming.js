@@ -37,10 +37,12 @@ let webCapture;
 // 1. Websocket Server - that listens for client connections
 const socketServer = new ws.Server({ port: PORT_WEBSOCKET });
 socketServer.on("connection", (socket) => {
-  if (logger.isDebug()) logger.debug("New WebSocket Connection (" + socketServer.clients.size + " total)");
+  if (logger.isDebug())
+    logger.debug("New WebSocket Connection (" + socketServer.clients.size + " total)");
 
   socket.on("close", (/* code, message */) => {
-    if (logger.isDebug()) logger.debug("Disconnected WebSocket (" + socketServer.clients.size + " total)");
+    if (logger.isDebug())
+      logger.debug("Disconnected WebSocket (" + socketServer.clients.size + " total)");
 
     // if this is last client then stop web-capturing
     if (socketServer.clients.size === 0) {

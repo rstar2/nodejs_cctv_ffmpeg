@@ -2,6 +2,7 @@ const path = require("path");
 const fs = require("fs");
 
 const express = require("express");
+const mime = require("mime-types");
 
 const logger = require("./logger");
 
@@ -27,13 +28,16 @@ app.use("*", (req, res, next) => {
 app.get("/api/live", (req, res) => {
   res.json({ wsport: PORT_WEBSOCKET });
 });
-app.get("/api/history", (req, res) => {
-  listFolder(HISTORY_PATH, (err, /* string[] */ files) => {
+app.get("/api/history", (req, res, next) => {
+  listFolderImages(HISTORY_PATH, (err, /* string[] */ files) => {
     // on error
-    if (err) return res.status(500).json({ err: err.message || "" + err });
+    if (err) return next(err);
 
     // return the history images
-    const images = files.map((fileName) => ({ url: `${HISTORY_FOLDER_NAME}/${fileName}`, meta: {} }));
+    const images = files.map((fileName) => ({
+      url: `${HISTORY_FOLDER_NAME}/${fileName}`,
+      meta: {},
+    }));
     res.json({ images });
   });
 });
@@ -55,6 +59,20 @@ app.get("/", (req, res) => res.redirect("/live.html"));
 
 // serve all static resources
 app.use(express.static(path.resolve(__dirname, "public")));
+
+app.use((err, req, res, next) => {
+  logger.warn("Failed request", err);
+
+  // check if response is not already "sent"
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  res.status(500);
+
+  // can send JSON/HTML according to the request, but no need for now
+  res.send("error");
+});
 
 app.listen(PORT_APP, () => {
   logger.info(`App listening on port ${PORT_APP}`);
@@ -81,14 +99,22 @@ function reboot() {
   logger.info("Rebooting failed - probably no permissions");
 }
 
-function listFolder(folderName, callback) {
+function listFolderImages(folderName, callback) {
   fs.readdir(folderName, (err, files) => {
     if (err) return callback(err);
 
     // filter only the files
-    files = files.filter((fileName) => {
-      return fs.lstatSync(path.resolve(folderName, fileName)).isFile();
-    });
+    try {
+      files = files.filter((fileName) => {
+        if (fs.lstatSync(path.resolve(folderName, fileName)).isFile()) {
+          const mimeType = mime.lookup(fileName);
+          return mimeType && mimeType.startsWith("image/");
+        }
+        return false;
+      });
+    } catch (err) {
+      return callback(err);
+    }
 
     callback(null, files);
   });

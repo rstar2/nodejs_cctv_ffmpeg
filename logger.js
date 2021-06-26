@@ -55,6 +55,8 @@ module.exports = {
    * @param {Error} [error]
    */
   warn(message, error) {
-    logger.warn(message);
+    // add the error stacktrace if available
+    if (error) logger.warn(message + ": ", error);
+    else logger.warn(message);
   },
 };
