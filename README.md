@@ -96,4 +96,4 @@ Also can make it run on server startup (e.g as a service)
 ## TODOs
 
 1. History capture
-1. Logging (for each request and stream start and for server start)
+1. ~~Logging (for each request and stream start and for server start)~~

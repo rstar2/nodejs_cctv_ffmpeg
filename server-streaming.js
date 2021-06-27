@@ -1,8 +1,8 @@
 const child_process = require("child_process");
 
 const ws = require("ws");
-
 const cron = require("node-cron");
+const stripAnsi = require("strip-ansi");
 
 const logger = require("./logger");
 
@@ -22,7 +22,8 @@ const WIDTH = 320,
 
 const HISTORY_CAPTURE_TRY_AGAIN_TIMEOUT = 1000 * 60 * 1; // 1 min
 const HISTORY_CAPTURE_TRY_AGAIN_MAX_ATTEMPTS = 5;
-const HISTORY_CAPTURE_CRON = "* * * * *"; // every minute
+// const HISTORY_CAPTURE_CRON = "* * * * *"; // every minute - for testing only
+const HISTORY_CAPTURE_CRON = "0 7-19 * * *"; // every 1 hour from 7 to 19
 
 let history_try_again_attempts = 0;
 // schedule a history image capture
@@ -38,11 +39,11 @@ let webCapture;
 const socketServer = new ws.Server({ port: PORT_WEBSOCKET });
 socketServer.on("connection", (socket) => {
   if (logger.isDebug())
-    logger.debug("New WebSocket Connection (" + socketServer.clients.size + " total)");
+    logger.debug(`New WebSocket Connection (${socketServer.clients.size} total)`);
 
   socket.on("close", (/* code, message */) => {
     if (logger.isDebug())
-      logger.debug("Disconnected WebSocket (" + socketServer.clients.size + " total)");
+      logger.debug(`Disconnected WebSocket (${socketServer.clients.size} total)`);
 
     // if this is last client then stop web-capturing
     if (socketServer.clients.size === 0) {
@@ -101,7 +102,7 @@ function startWebCapture() {
     logger.warn("Already started web-capturing process");
   } else {
     if (logger.isDebug()) logger.debug("Starting web-capturing process");
-    webCapture = child_process.spawn("./ffmpeg-webcapture.sh", { detached: true });
+    webCapture = child_process.spawn("./ffmpeg-webcapture-stream.sh", { detached: true });
     if (logger.isDebug()) logger.debug("Started web-capturing process");
 
     // webCapture = child_process.exec(
@@ -165,10 +166,30 @@ function historyCaptureTry() {
   }
 }
 function historyCapture() {
-  // TODO: capture and write a file
-  if (logger.isDebug()) logger.debug("New image", new Date());
+  // capture and write a file
+  if (logger.isDebug()) logger.debug(`Start history image capture: ${new Date()}`);
+
+  // do it sync, so that web-streaming would not kick in - this is not super user friendly as
+  // it will introduce some delay/blocking in handling the other HTTP/WS request, but is ok for this app
+  //   const output = child_process.execSync("./ffmpeg-webcapture-image.sh ./public/history/test.jpg", {
+  //     encoding: "utf-8",
+  //     stdio: "inherit",
+  //   });
+  const output = child_process.spawnSync(
+    "./ffmpeg-webcapture-image.sh",
+    ["./public/history/test.jpg"],
+    {
+      encoding: "utf-8",
+    }
+  );
+
+  if (logger.isDebug()) {
+    logger.debug(`Finish history image capture on ${new Date()}
+Output:
+${stripAnsi(output.stderr)}`);
+  }
 }
 
 logger.info(`INTERNAL_FFMPEG_PROCESS=${INTERNAL_FFMPEG_PROCESS}`);
-logger.info("Listening for MPEG Stream on http://0.0.0.0:" + PORT_STREAM);
-logger.info("Awaiting client WebSocket connections on ws://0.0.0.0:" + PORT_WEBSOCKET);
+logger.info(`Listening for MPEG Stream on http://0.0.0.0:${PORT_STREAM}`);
+logger.info(`Awaiting client WebSocket connections on ws://0.0.0.0:${PORT_WEBSOCKET}`);
