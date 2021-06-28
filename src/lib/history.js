@@ -10,7 +10,7 @@ const HISTORY_PATH = path.resolve(__dirname, "../../public", HISTORY_FOLDER_NAME
 
 exports.HISTORY_FOLDER_NAME = HISTORY_FOLDER_NAME;
 
-const HISTORY_MAX = 3; // 15
+const HISTORY_MAX = 15;
 
 // keep track of the next "new" image
 let lastImageNum = 1;

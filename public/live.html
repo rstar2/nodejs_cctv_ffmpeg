@@ -8,6 +8,9 @@
     <script src="js/jsmpeg.min.js"></script>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }
       html,
       body {
         margin: 0;
@@ -56,6 +59,14 @@
       }
 
       @media screen and (min-width: 0) and (max-width: 640px) {
+        * {
+            font-size: 20px;
+        }
+        header {
+            width: 100%;
+            padding: 0 5px;
+        }
+
         canvas {
           border: none;
         }

@@ -8,6 +8,9 @@
     <script src="js/jsmpeg.min.js"></script>
 
     <style>
+      * {
+        box-sizing: border-box;
+      }  
       html,
       body {
         margin: 0;
@@ -19,6 +22,13 @@
 
         background-color: rgba(0, 0, 0, 0.9);
         color: chocolate;
+        text-transform: uppercase;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
       }
 
       .images {
@@ -30,14 +40,39 @@
       .image {
         border: 2px ridge chocolate;
         margin-bottom: 10px;
+        max-width: calc(100vw - 4px);
+      }
+
+      .icon {
+        height: 16px;
+        width: 16px;
+        display: inline-block;
+        color: chocolate;
+      }
+      .icon-live {
+        background-image: url('images/live.svg');
+      }
+
+      .action {
+        cursor: pointer;
       }
 
       @media screen and (min-width: 0) and (max-width: 640px) {
+        * {
+            font-size: 20px;
+        }
+        header {
+            width: 100%;
+            padding: 0 5px;
+        }
       }
     </style>
   </head>
   <body>
-    <h2>Villa Cherniovo History</h2>
+    <header>
+        <h2>Villa Cherniovo History</h2>
+        <i class="icon icon-live action" title="Live stream"></i>
+      </header>
     <h3 class="loading">Loading...</h3>
     <div class="images"></div>
 
@@ -65,6 +100,11 @@
           elLoading.style.display = 'block';
           elLoading.innerHTML = 'Failed to load history images';
         });
+
+      document
+        .querySelector('header .icon-live')
+        .addEventListener('click', () => (window.location.href = 'live.html'));
+        
     </script>
   </body>
 </html>

@@ -23,8 +23,8 @@ const WIDTH = 320,
 
 const HISTORY_CAPTURE_TRY_AGAIN_TIMEOUT = 1000 * 60 * 1; // 1 min
 const HISTORY_CAPTURE_TRY_AGAIN_MAX_ATTEMPTS = 5;
-const HISTORY_CAPTURE_CRON = "* * * * *"; // every minute - for testing only
-// const HISTORY_CAPTURE_CRON = "0 7-19 * * *"; // every 1 hour from 7 to 19
+// const HISTORY_CAPTURE_CRON = "* * * * *"; // every minute - for testing only
+const HISTORY_CAPTURE_CRON = "0 7-19 * * *"; // every 1 hour from 7 to 19
 
 let history_try_again_attempts = 0;
 // schedule a history image capture
