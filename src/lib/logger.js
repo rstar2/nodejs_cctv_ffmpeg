@@ -11,7 +11,7 @@ log4js.configure({
       // output to a file and rotate it after it reaches a max size,
       // also keep max 3 backup/old versions and compress them
       type: "file",
-      filename: "default.log",
+      filename: "logs/default.log",
       maxLogSize: 10485760, // 1 MB
       // maxLogSize: 1024,  // 1 KB
       backups: 3,

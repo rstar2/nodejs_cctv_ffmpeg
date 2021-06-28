@@ -1,10 +1,9 @@
 const path = require("path");
-const fs = require("fs");
 
 const express = require("express");
-const mime = require("mime-types");
 
-const logger = require("./logger");
+const logger = require("./lib/logger");
+const { HISTORY_FOLDER_NAME, getHistoryImages } = require("./lib/history");
 
 const app = express();
 
@@ -12,9 +11,6 @@ const PORT_APP = process.env.WEBCAM_PORT_APP || 3000;
 const PORT_WEBSOCKET = process.env.WEBCAM_PORT_WEBSOCKET || 9999;
 
 const SECRET_PASS = process.env.WEBCAM_SECRET_PASS || "!@rkm@!_";
-
-const HISTORY_FOLDER_NAME = "history";
-const HISTORY_PATH = path.resolve(__dirname, "public", HISTORY_FOLDER_NAME);
 
 app.use("*", (req, res, next) => {
   if (logger.isDebug()) {
@@ -29,7 +25,7 @@ app.get("/api/live", (req, res) => {
   res.json({ wsport: PORT_WEBSOCKET });
 });
 app.get("/api/history", (req, res, next) => {
-  listFolderImages(HISTORY_PATH, (err, /* string[] */ files) => {
+  getHistoryImages((err, /* string[] */ files) => {
     // on error
     if (err) return next(err);
 
@@ -58,7 +54,7 @@ app.get("/protected/reboot", (req, res) => {
 app.get("/", (req, res) => res.redirect("/live.html"));
 
 // serve all static resources
-app.use(express.static(path.resolve(__dirname, "public")));
+app.use(express.static(path.resolve(__dirname, "../public")));
 
 app.use((err, req, res, next) => {
   logger.warn("Failed request", err);
@@ -97,25 +93,4 @@ function reboot() {
   logger.info("Rebooting");
   require("reboot").reboot();
   logger.info("Rebooting failed - probably no permissions");
-}
-
-function listFolderImages(folderName, callback) {
-  fs.readdir(folderName, (err, files) => {
-    if (err) return callback(err);
-
-    // filter only the files
-    try {
-      files = files.filter((fileName) => {
-        if (fs.lstatSync(path.resolve(folderName, fileName)).isFile()) {
-          const mimeType = mime.lookup(fileName);
-          return mimeType && mimeType.startsWith("image/");
-        }
-        return false;
-      });
-    } catch (err) {
-      return callback(err);
-    }
-
-    callback(null, files);
-  });
 }

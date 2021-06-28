@@ -97,3 +97,4 @@ Also can make it run on server startup (e.g as a service)
 
 1. History capture
 1. ~~Logging (for each request and stream start and for server start)~~
+1. Add static resources caching, and also for the unchanged history image files

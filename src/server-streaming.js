@@ -4,7 +4,7 @@ const ws = require("ws");
 const cron = require("node-cron");
 const stripAnsi = require("strip-ansi");
 
-const logger = require("./logger");
+const logger = require("./lib/logger");
 
 // here will come the HTTP live stream
 const PORT_STREAM = process.env.WEBCAM_PORT_STREAM || 8888;
