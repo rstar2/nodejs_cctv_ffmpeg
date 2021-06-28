@@ -5,6 +5,7 @@ const cron = require("node-cron");
 const stripAnsi = require("strip-ansi");
 
 const logger = require("./lib/logger");
+const { createNewHistoryImageName } = require("./lib/history");
 
 // here will come the HTTP live stream
 const PORT_STREAM = process.env.WEBCAM_PORT_STREAM || 8888;
@@ -22,8 +23,8 @@ const WIDTH = 320,
 
 const HISTORY_CAPTURE_TRY_AGAIN_TIMEOUT = 1000 * 60 * 1; // 1 min
 const HISTORY_CAPTURE_TRY_AGAIN_MAX_ATTEMPTS = 5;
-// const HISTORY_CAPTURE_CRON = "* * * * *"; // every minute - for testing only
-const HISTORY_CAPTURE_CRON = "0 7-19 * * *"; // every 1 hour from 7 to 19
+const HISTORY_CAPTURE_CRON = "* * * * *"; // every minute - for testing only
+// const HISTORY_CAPTURE_CRON = "0 7-19 * * *"; // every 1 hour from 7 to 19
 
 let history_try_again_attempts = 0;
 // schedule a history image capture
@@ -166,25 +167,23 @@ function historyCaptureTry() {
   }
 }
 function historyCapture() {
+  const historyFile = createNewHistoryImageName();
   // capture and write a file
-  if (logger.isDebug()) logger.debug(`Start history image capture: ${new Date()}`);
+  if (logger.isDebug()) logger.debug(`Start history image capture ${historyFile} on ${new Date()}`);
 
   // do it sync, so that web-streaming would not kick in - this is not super user friendly as
   // it will introduce some delay/blocking in handling the other HTTP/WS request, but is ok for this app
-  //   const output = child_process.execSync("./ffmpeg-webcapture-image.sh ./public/history/test.jpg", {
+  //   const output = child_process.execSync(`./ffmpeg-webcapture-image.sh ${historyFile}`, {
   //     encoding: "utf-8",
   //     stdio: "inherit",
   //   });
-  const output = child_process.spawnSync(
-    "./ffmpeg-webcapture-image.sh",
-    ["./public/history/test.jpg"],
-    {
-      encoding: "utf-8",
-    }
-  );
+
+  const output = child_process.spawnSync("./ffmpeg-webcapture-image.sh", [historyFile], {
+    encoding: "utf-8",
+  });
 
   if (logger.isDebug()) {
-    logger.debug(`Finish history image capture on ${new Date()}
+    logger.debug(`Finish history image capture ${historyFile} on ${new Date()}
 Output:
 ${stripAnsi(output.stderr)}`);
   }
