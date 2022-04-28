@@ -3,15 +3,15 @@
 1. FFmpeg for webcam-capture and streaming to a listening HTTP server (e.g. on 8888 port)
 
 ```bash
-$ ffmpeg -f v4l2 \
-             -video_size 640x480 -framerate 25 -i /dev/video0 \
-         -f alsa
-             -ar 44100 -ac 2 -i hw:0 \
-         -f mpegts \
-             -codec:v mpeg1video -s 640x480 -b:v 1000k -bf 0 \
-             -codec:a mp2 -b:a 128k \
-             -muxdelay 0.001 \
-         http://127.0.0.1:8888
+ffmpeg -f v4l2 \
+           -video_size 640x480 -framerate 25 -i /dev/video0 \
+       -f alsa
+           -ar 44100 -ac 2 -i hw:0 \
+       -f mpegts \
+           -codec:v mpeg1video -s 640x480 -b:v 1000k -bf 0 \
+           -codec:a mp2 -b:a 128k \
+           -muxdelay 0.001 \
+       http://127.0.0.1:8888
 ```
 
 Here most important are the output format for MPEG-TS demuxer, MPEG1 video & MP2 audio decoders 
@@ -29,13 +29,13 @@ Here most important are the output format for MPEG-TS demuxer, MPEG1 video & MP2
 1. To list the supported, connected capture devices you can use the v4l-ctl tool:
 
 ```bash
-$ v4l2-ctl --list-devices
+v4l2-ctl --list-devices
 ```
 
 1. To list available formats (supported pixel formats, video formats, and frame sizes) for a particular input device:
 
 ```bash
-$ ffmpeg -f v4l2 -list_formats all -i /dev/video0
+ffmpeg -f v4l2 -list_formats all -i /dev/video0
 ```
 
 ## FFMPEG readme
@@ -43,41 +43,46 @@ $ ffmpeg -f v4l2 -list_formats all -i /dev/video0
 ### Capture Webcam
 
 ```bash
-$ ffmpeg -f v4l2 -framerate 25 -video_size 640x480 -i /dev/video0 output.mkv
+ffmpeg -f v4l2 -framerate 25 -video_size 640x480 -i /dev/video0 output.mkv
 ```
 
 or simpler
 
 ```bash
-$ ffmpeg -f v4l2 -r 25 -s 640x480 -i /dev/video0 output.mp4
+ffmpeg -f v4l2 -r 25 -s 640x480 -i /dev/video0 output.mp4
+```
+
+or just a single image
+
+```bash
+ffmpeg -f video4linux2 -i /dev/v4l/by-id/usb-0c45_USB_camera-video-index0 -vframes 1  -video_size 640x480 test.jpeg
 ```
 
 ### Capture video and audio
 
 ```bash
-$ ffmpeg -f v4l2 -r 25 -s 640x480 -i /dev/video0 -f alsa -i hw:0 -acodec aac -ac 2 -ab 32k -ar 44100 -f mpegts output.mp4
+ffmpeg -f v4l2 -r 25 -s 640x480 -i /dev/video0 -f alsa -i hw:0 -acodec aac -ac 2 -ab 32k -ar 44100 -f mpegts output.mp4
 ```
 
-Where: 
+Where:
 ``` -f v4l2 -r 25 -s 640x480 -i /dev/video0 ``` is for video input
 
 ``` -f alsa -i hw:0 -acodec aac -ac 2 -ab 32k -ar 44100 ``` is for audio
 
 ``` -f mpegts ``` will be packed into video and audio MPEG transport stream
 
-
 ### Video loopback
 
-```
+```bash
 sudo apt install v4l2loopback-dkms
 sudo modprobe v4l2loopback
-  or for more loopback devices
+#  or for more loopback devices
 sudo modprobe v4l2loopback devices=4
 ```
 
 ## Run
 
-### With running 'ffmpeg capturing' internally from the streaming server only when a client is connected 
+### With running 'ffmpeg capturing' internally from the streaming server only when a client is connected
 
 > Start the UI-server and the re-streaming server: ```npm run start```
 
@@ -91,7 +96,6 @@ Use pm2 to run it, so inside the project folder run ```pm2 start --name livecam-
 
 Also can make it run on server startup (e.g as a service)
 ```pm2 startup``` and use the script it outputs. Note all processed that are needed to be started on reboot (server startup) are necessary to be "saved", so do this with ```pm2 save```, e.g. the whole "pm2 list" is run as a service. Note a name can be set with ```pm2 startup --service-name <name>```
-
 
 ## TODOs
 
